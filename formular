@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezervácia skúšobných jázd</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        .success {
+            color: green;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rezervácia skúšobných jázd</h1>
+    <form id="reservationForm">
+        <div class="error" id="error"></div>
+        <label for="name">Meno:</label>
+        <input type="text" id="name" name="name" required>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        
+        <label for="phone">Telefónne číslo:</label>
+        <input type="text" id="phone" name="phone" required>
+
+        <label for="car">Vyberte si auto:</label>
+        <select id="car" name="car" required>
+            <option value="">Vyberte auto</option>
+            <option value="Dacia Duster 1">Dacia Duster 1</option>
+            <option value="Dacia Duster 2">Dacia Duster 2</option>
+            <option value="Dacia Jogger">Dacia Jogger</option>
+        </select>
+        
+        <label for="timeSlot">Vyberte si čas:</label>
+        <select id="timeSlot" name="timeSlot" required>
+            <option value="">Vyberte čas</option>
+            <!-- Časové úseky medzi 9:00 a 14:00 -->
+            <option value="09:00">09:00 - 09:15</option>
+            <option value="09:15">09:15 - 09:30</option>
+            <option value="09:30">09:30 - 09:45</option>
+            <option value="09:45">09:45 - 10:00</option>
+
+            <option value="10:00">10:00 - 10:15</option>
+            <option value="10:15">10:15 - 10:30</option>
+            <option value="10:30">10:30 - 10:45</option>
+            <option value="10:45">10:45 - 11:00</option>
+
+            <option value="11:00">11:00 - 11:15</option>
+            <option value="11:15">11:15 - 11:30</option>
+            <option value="11:30">11:30 - 11:45</option>
+            <option value="11:45">11:45 - 12:00</option>
+
+            <option value="12:00">12:00 - 12:15</option>
+            <option value="12:15">12:15 - 12:30</option>
+            <option value="12:30">12:30 - 12:45</option>
+            <option value="12:45">12:45 - 13:00</option>
+
+            <option value="13:00">13:00 - 13:15</option>
+            <option value="13:15">13:15 - 13:30</option>
+            <option value="13:30">13:30 - 13:45</option>
+            <option value="13:45">13:45 - 14:00</option>
+        </select>
+        
+        <button type="submit">Rezervovať</button>
+        <div class="success" id="success"></div>
+    </form>
+
+    <script>
+        document.getElementById('reservationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const car = document.getElementById('car').value;
+            const timeSlot = document.getElementById('timeSlot').value;
+
+            const errorElement = document.getElementById('error');
+            const successElement = document.getElementById('success');
+            errorElement.textContent = '';
+            successElement.textContent = '';
+
+            if (!name || !email || !phone || !car || !timeSlot) {
+                errorElement.textContent = 'Prosím, vyplňte všetky polia.';
+                return;
+            }
+
+            const reservations = JSON.parse(localStorage.getItem('reservations')) || {};
+
+            const reservationKey = car + '_' + timeSlot;
+
+            if (reservations[reservationKey]) {
+                errorElement.textContent = 'Tento časový úsek pre toto auto je už rezervovaný. Prosím, vyberte iný.';
+                return;
+            }
+
+            reservations[reservationKey] = { name, email, phone };
+            localStorage.setItem('reservations', JSON.stringify(reservations));
+
+            successElement.textContent = 'Vaša rezervácia bola úspešná!';
+            document.getElementById('reservationForm').reset();
+
+            // Deaktivovať rezervovaný časový úsek pre dané auto
+            document.querySelector(`option[value="${timeSlot}"]`).disabled = true;
+        });
+
+        // Načítanie a deaktivácia už rezervovaných časových úsekov pre jednotlivé autá
+        window.onload = function() {
+            const reservations = JSON.parse(localStorage.getItem('reservations')) || {};
+            Object.keys(reservations).forEach(function(reservationKey) {
+                const [car, timeSlot] = reservationKey.split('_');
+                const carSelection = document.getElementById('car').value;
+                if (carSelection === car) {
+                    document.querySelector(`option[value="${timeSlot}"]`).disabled = true;
+                }
+            });
+        };
+    </script>
+</body>
+</html>
